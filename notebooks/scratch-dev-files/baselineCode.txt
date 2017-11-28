@@ -1,0 +1,27 @@
+# Compute Output
+y_bar = y.mean()
+#print y_bar
+
+y_sem = sem(np.ravel(y))
+#print y_sem
+
+y_hat_dummy = norm.rvs(loc = y_bar, scale = y_sem, size = 10000)
+#_ = plt.hist(y_hat_dummy, 300, normed = True)
+
+# Convert to Evidence for Hypothesis
+y_test = y[0]
+
+err_samples = multivariate_normal.rvs(mean = np.ravel(y_bar - y), cov=np.eye(y.shape[0]), size = 10000)
+err_bar = (err_samples**2).mean(axis = 1)
+dof = len(err_samples)
+
+plt.figure()
+_ = plt.hist(err_bar, 500, normed = True)
+_ = plt.xlabel(r'mse', fontsize = 16)
+_ = plt.ylabel(r'$P(\tilde e|h_0)$', fontsize = 16)
+
+loc, scale =  chi2.fit_loc_scale(err_bar, dof)
+xaxis = np.linspace(250,320,100)
+plt.plot(xaxis, chi2.pdf(xaxis, dof, loc=loc, scale=scale))
+
+h0 = chi2(dof,loc=loc, scale=scale)
